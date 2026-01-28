@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import toast from "react-hot-toast";
 
 export default function AdminClientsPage() {
@@ -218,6 +219,12 @@ export default function AdminClientsPage() {
                   >
                     {expandedClient === client.id ? "Hide" : "Show"} Niches
                   </button>
+                  <Link
+                    href={`/admin/clients/${client.id}/delete-data`}
+                    className="text-xs text-amber-400 hover:text-amber-300"
+                  >
+                    Delete data
+                  </Link>
                   <button
                     onClick={() => handleDelete(client.id, client.name)}
                     className="text-xs text-red-400 hover:text-red-300"
