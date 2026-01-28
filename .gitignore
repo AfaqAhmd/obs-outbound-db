@@ -1,0 +1,44 @@
+# dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# next.js
+.next/
+out/
+dist/
+.turbo/
+.vercel/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# env files (NEVER commit)
+.env
+.env.*
+!.env.example
+
+# prisma
+prisma/dev.db
+prisma/dev.db-journal
+*.db
+*.sqlite
+
+# OS, editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# build artifacts, cache
+coverage/
+*.tsbuildinfo
+.cache/
+
+# misc secrets
+*.pem
+*.key

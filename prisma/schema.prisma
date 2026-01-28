@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String   // hashed password
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("admins")
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  uploads   Upload[]
+  rowData   RowData[]
+  enriched  EnrichedData[]
+  niches    ClientNiche[]
+
+  @@map("clients")
+}
+
+model ClientNiche {
+  id        String   @id @default(uuid())
+  clientId  String   @map("client_id")
+  nicheId   String   @map("niche_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  niche     Niche    @relation(fields: [nicheId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, nicheId])
+  @@index([clientId])
+  @@index([nicheId])
+  @@map("client_niches")
+}
+
+model Niche {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  uploads   Upload[]
+  clients   ClientNiche[]
+
+  @@map("niches")
+}
+
+model Uploader {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  uploads   Upload[]
+
+  @@map("uploaders")
+}
+
+enum DataType {
+  row
+  enriched
+}
+
+enum UploadStatus {
+  success
+  failed
+}
+
+model Upload {
+  id              String        @id @default(uuid())
+  clientId        String        @map("client_id")
+  nicheId         String        @map("niche_id")
+  uploaderId      String        @map("uploader_id")
+  dataType        DataType      @map("data_type")
+  uploadDate      DateTime      @map("upload_date")
+  originalFilename String?      @map("original_filename")
+  rowCount        Int?          @map("row_count")
+  status          UploadStatus  @default(success)
+  errorMessage    String?       @map("error_message")
+
+  client          Client        @relation(fields: [clientId], references: [id])
+  niche           Niche         @relation(fields: [nicheId], references: [id])
+  uploader        Uploader      @relation(fields: [uploaderId], references: [id])
+  rowData         RowData[]
+  enrichedData    EnrichedData[]
+
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  @@index([clientId])
+  @@index([nicheId])
+  @@index([uploaderId])
+  @@index([uploadDate])
+  @@map("uploads")
+}
+
+model RowData {
+  id                String   @id @default(uuid())
+  clientId          String   @map("client_id")
+  uploadId          String   @map("upload_id")
+
+  companyName       String?  @map("company_name")
+  website           String?
+  normalizedWebsite String?  @map("normalized_website")
+  category          String?
+  review            String?
+  rating            String?
+  address           String?
+  street            String?
+  city              String?
+  state             String?
+  country           String?
+  googleUrl         String?  @map("google_url")
+  phoneNumber       String?  @map("phone_number")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  client            Client   @relation(fields: [clientId], references: [id])
+  upload            Upload   @relation(fields: [uploadId], references: [id])
+
+  @@index([clientId])
+  @@index([uploadId])
+  @@index([createdAt])
+  @@index([normalizedWebsite])
+  @@map("row_data")
+}
+
+model EnrichedData {
+  id                String   @id @default(uuid())
+  clientId          String   @map("client_id")
+  uploadId          String   @map("upload_id")
+
+  businessName      String?  @map("business_name")
+  normalizedWebsite String?  @map("normalized_website")
+  companyLinkedin   String?  @map("company_linkedin")
+  fullName          String?  @map("full_name")
+  firstName         String?  @map("first_name")
+  jobTitle          String?  @map("job_title")
+  personLinkedin    String?  @map("person_linkedin")
+  fme               String?
+  e1                String?
+  e2                String?
+  e3                String?
+  e4                String?
+  sub1              String?
+  sub2              String?
+  sub3              String?
+  sub4              String?
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  client            Client   @relation(fields: [clientId], references: [id])
+  upload            Upload   @relation(fields: [uploadId], references: [id])
+
+  @@index([clientId])
+  @@index([uploadId])
+  @@index([createdAt])
+  @@index([normalizedWebsite])
+  @@map("enriched_data")
+}
+
