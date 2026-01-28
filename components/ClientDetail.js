@@ -54,6 +54,18 @@ export default function ClientDetail({ client }) {
         if (search.trim()) {
           url.searchParams.set("search", search.trim());
         }
+        if (downloadFrom) {
+          url.searchParams.set("from", downloadFrom);
+        }
+        if (downloadTo) {
+          url.searchParams.set("to", downloadTo);
+        }
+        if (downloadUploader) {
+          url.searchParams.set("uploader", downloadUploader);
+        }
+        if (downloadNiche) {
+          url.searchParams.set("niche", downloadNiche);
+        }
         const res = await fetch(url.toString());
         const json = await res.json();
         setData(json.items || []);
@@ -65,7 +77,18 @@ export default function ClientDetail({ client }) {
       }
     }
     load();
-  }, [client.id, activeTab, search, page, sort, direction]);
+  }, [
+    client.id,
+    activeTab,
+    search,
+    page,
+    sort,
+    direction,
+    downloadFrom,
+    downloadTo,
+    downloadUploader,
+    downloadNiche
+  ]);
 
   useEffect(() => {
     async function loadUploaders() {
@@ -177,32 +200,45 @@ export default function ClientDetail({ client }) {
             ))}
           </select>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            const url = new URL(
-              `/api/clients/${client.id}/download`,
-              window.location.origin
-            );
-            url.searchParams.set("dataType", downloadType);
-            if (downloadFrom) {
-              url.searchParams.set("from", downloadFrom);
-            }
-            if (downloadTo) {
-              url.searchParams.set("to", downloadTo);
-            }
-            if (downloadUploader) {
-              url.searchParams.set("uploader", downloadUploader);
-            }
-            if (downloadNiche) {
-              url.searchParams.set("niche", downloadNiche);
-            }
-            window.location.href = url.toString();
-          }}
-          className="ml-auto rounded bg-sky-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-600"
-        >
-          Download CSV
-        </button>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              // Switch to the selected data type tab and apply filters
+              setActiveTab(downloadType === "row" ? "row" : "enriched");
+              setPage(1);
+            }}
+            className="rounded border border-sky-500 px-3 py-1.5 text-xs font-medium text-sky-400 hover:bg-sky-900/40"
+          >
+            Show data
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const url = new URL(
+                `/api/clients/${client.id}/download`,
+                window.location.origin
+              );
+              url.searchParams.set("dataType", downloadType);
+              if (downloadFrom) {
+                url.searchParams.set("from", downloadFrom);
+              }
+              if (downloadTo) {
+                url.searchParams.set("to", downloadTo);
+              }
+              if (downloadUploader) {
+                url.searchParams.set("uploader", downloadUploader);
+              }
+              if (downloadNiche) {
+                url.searchParams.set("niche", downloadNiche);
+              }
+              window.location.href = url.toString();
+            }}
+            className="rounded bg-sky-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-600"
+          >
+            Download CSV
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center justify-between gap-2">

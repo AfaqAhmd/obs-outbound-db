@@ -7,6 +7,10 @@ export async function GET(request, { params }) {
   const search = (searchParams.get("search") || "").trim();
   const sort = searchParams.get("sort") || "uploadDate";
   const direction = searchParams.get("direction") === "asc" ? "asc" : "desc";
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
+  const uploader = (searchParams.get("uploader") || "").trim();
+  const niche = (searchParams.get("niche") || "").trim();
 
   const where = {
     clientId: params.id
@@ -18,6 +22,27 @@ export async function GET(request, { params }) {
       { uploader: { name: { contains: search, mode: "insensitive" } } },
       { dataType: { equals: search.toLowerCase() } }
     ];
+  }
+
+  if (from || to) {
+    const fromDate = from ? new Date(from) : null;
+    const toDate = to ? new Date(to) : null;
+    where.uploadDate = {
+      ...(fromDate ? { gte: fromDate } : {}),
+      ...(toDate ? { lte: toDate } : {})
+    };
+  }
+
+  if (uploader) {
+    where.uploader = {
+      name: { equals: uploader, mode: "insensitive" }
+    };
+  }
+
+  if (niche) {
+    where.niche = {
+      name: { equals: niche, mode: "insensitive" }
+    };
   }
 
   const allowedSort = {

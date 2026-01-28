@@ -5,12 +5,43 @@ export async function GET(request, { params }) {
   const page = parseInt(searchParams.get("page") || "1", 10);
   const pageSize = parseInt(searchParams.get("pageSize") || "20", 10);
   const search = (searchParams.get("search") || "").trim();
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
+  const uploader = (searchParams.get("uploader") || "").trim();
+  const niche = (searchParams.get("niche") || "").trim();
   const sort = searchParams.get("sort") || "createdAt";
   const direction = searchParams.get("direction") === "asc" ? "asc" : "desc";
 
   const where = {
     clientId: params.id
   };
+
+  const uploadFilters = {};
+
+  if (from || to) {
+    const fromDate = from ? new Date(from) : null;
+    const toDate = to ? new Date(to) : null;
+    uploadFilters.uploadDate = {
+      ...(fromDate ? { gte: fromDate } : {}),
+      ...(toDate ? { lte: toDate } : {})
+    };
+  }
+
+  if (uploader) {
+    uploadFilters.uploader = {
+      name: { equals: uploader, mode: "insensitive" }
+    };
+  }
+
+  if (niche) {
+    uploadFilters.niche = {
+      name: { equals: niche, mode: "insensitive" }
+    };
+  }
+
+  if (Object.keys(uploadFilters).length > 0) {
+    where.upload = uploadFilters;
+  }
 
   if (search) {
     where.OR = [
