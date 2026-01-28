@@ -170,9 +170,9 @@ export default function ClientDetail({ client }) {
             className="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs min-w-[140px]"
           >
             <option value="">All niches</option>
-            {niches.map((n) => (
-              <option key={n} value={n}>
-                {n}
+            {niches.map((niche) => (
+              <option key={niche.id} value={niche.name}>
+                {niche.name}
               </option>
             ))}
           </select>
