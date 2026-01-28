@@ -39,7 +39,12 @@ export async function GET(request, { params }) {
       skip: (page - 1) * pageSize,
       take: pageSize,
       include: {
-        upload: true
+        upload: {
+          include: {
+            niche: true,
+            uploader: true
+          }
+        }
       }
     })
   ]);
