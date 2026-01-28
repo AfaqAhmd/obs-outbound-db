@@ -3,7 +3,11 @@ import ToasterClient from "@/components/ToasterClient";
 
 export const metadata = {
   title: "Outbound DB",
-  description: "Multi-client outbound data warehouse"
+  description: "Multi-client outbound data warehouse",
+    icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  }
 };
 
 export default function RootLayout({ children }) {
