@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { formatDateTimeGMT5 } from "@/lib/formatDate";
 
 export default function AdminNichesPage() {
   const router = useRouter();
@@ -131,7 +132,7 @@ export default function AdminNichesPage() {
                 >
                   <td className="px-3 py-2 text-slate-100">{niche.name}</td>
                   <td className="px-3 py-2 text-slate-400">
-                    {new Date(niche.createdAt).toLocaleString()}
+                    {formatDateTimeGMT5(niche.createdAt)}
                   </td>
                   <td className="px-3 py-2 text-right">
                     <button

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import RowDetailModal from "./RowDetailModal";
+import { formatDateTimeGMT5 } from "@/lib/formatDate";
 
 const PAGE_SIZE = 20;
 
@@ -135,7 +136,7 @@ export default function ClientDetail({ client }) {
             {client.name}
           </h2>
           <p className="text-xs text-slate-400">
-            Created {new Date(client.createdAt).toLocaleString()}
+            Created {formatDateTimeGMT5(client.createdAt)}
           </p>
         </div>
       </div>
@@ -452,7 +453,7 @@ function RowDataTable({ items, loading, sort, direction, onSort, onViewDetails }
               <td className="px-3 py-2 text-slate-200">{row.upload?.niche?.name || "-"}</td>
               <td className="px-3 py-2 text-slate-200">{row.upload?.uploader?.name || "-"}</td>
               <td className="px-3 py-2 text-slate-400">
-                {new Date(row.createdAt).toLocaleString()}
+                {formatDateTimeGMT5(row.createdAt)}
               </td>
               <td className="px-3 py-2 text-right">
                 <button
@@ -568,7 +569,7 @@ function EnrichedDataTable({
                 {row.upload?.uploader?.name || "-"}
               </td>
               <td className="px-3 py-2 text-slate-400">
-                {new Date(row.createdAt).toLocaleString()}
+                {formatDateTimeGMT5(row.createdAt)}
               </td>
               <td className="px-3 py-2 text-right">
                 <button
@@ -657,7 +658,7 @@ function UploadsTable({ items, loading, sort, direction, onSort }) {
               className="border-t border-slate-800 hover:bg-slate-900/40"
             >
               <td className="px-3 py-2 text-slate-100">
-                {new Date(u.uploadDate).toLocaleString()}
+                {formatDateTimeGMT5(u.uploadDate)}
               </td>
               <td className="px-3 py-2 capitalize text-slate-200">
                 {u.dataType}

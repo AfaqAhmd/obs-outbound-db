@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { dateStringToGMT5Date } from "@/lib/timezone";
 
 export async function GET(request, { params }) {
   const { searchParams } = new URL(request.url);
@@ -19,14 +20,8 @@ export async function GET(request, { params }) {
   const uploadFilters = {};
 
   if (from || to) {
-    const fromDate = from ? new Date(from) : null;
-    const toDate = to ? new Date(to) : null;
-    if (fromDate) {
-      fromDate.setHours(0, 0, 0, 0);
-    }
-    if (toDate) {
-      toDate.setHours(23, 59, 59, 999);
-    }
+    const fromDate = dateStringToGMT5Date(from, false);
+    const toDate = dateStringToGMT5Date(to, true);
     uploadFilters.uploadDate = {
       ...(fromDate ? { gte: fromDate } : {}),
       ...(toDate ? { lte: toDate } : {})

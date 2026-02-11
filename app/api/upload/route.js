@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { normalizeWebsite } from "@/lib/normalizeWebsite";
+import { getCurrentDateGMT5 } from "@/lib/timezone";
 import Papa from "papaparse";
 
 const REQUIRED_ROW_HEADERS = [
@@ -85,7 +86,7 @@ export async function POST(request) {
     );
   }
 
-  const uploadDate = new Date();
+  const uploadDate = getCurrentDateGMT5();
   const originalFilename = file.name || "upload.csv";
 
   const buffer = Buffer.from(await file.arrayBuffer());
@@ -145,7 +146,9 @@ export async function POST(request) {
   const rows = parseResult.data;
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    // Increase transaction timeout to 30 seconds for large uploads
+    const result = await prisma.$transaction(
+      async (tx) => {
       if (dataType === "row") {
         const rawPayload = rows.map((row) => {
           function val(label) {
@@ -201,16 +204,19 @@ export async function POST(request) {
 
         let existingNormalizedSet = new Set();
         if (normalizedToCheck.length) {
-          const existing = await tx.rowData.findMany({
-            where: {
-              clientId,
-              normalizedWebsite: { in: normalizedToCheck }
-            },
-            select: { normalizedWebsite: true }
-          });
-          existingNormalizedSet = new Set(
-            existing.map((e) => e.normalizedWebsite)
-          );
+          // Batch the deduplication query to avoid large IN clauses (PostgreSQL limit ~1000)
+          const DEDUPE_BATCH_SIZE = 1000;
+          for (let i = 0; i < normalizedToCheck.length; i += DEDUPE_BATCH_SIZE) {
+            const batch = normalizedToCheck.slice(i, i + DEDUPE_BATCH_SIZE);
+            const existing = await tx.rowData.findMany({
+              where: {
+                clientId,
+                normalizedWebsite: { in: batch }
+              },
+              select: { normalizedWebsite: true }
+            });
+            existing.forEach((e) => existingNormalizedSet.add(e.normalizedWebsite));
+          }
         }
 
         const finalPayload = uniquePayload.filter((row) => {
@@ -238,10 +244,15 @@ export async function POST(request) {
           }));
 
           try {
-            await tx.rowData.createMany({
-              data: dataWithUpload,
-              skipDuplicates: false
-            });
+            // Batch inserts for large datasets (Prisma has a limit of ~1000 rows per createMany)
+            const BATCH_SIZE = 1000;
+            for (let i = 0; i < dataWithUpload.length; i += BATCH_SIZE) {
+              const batch = dataWithUpload.slice(i, i + BATCH_SIZE);
+              await tx.rowData.createMany({
+                data: batch,
+                skipDuplicates: false
+              });
+            }
           } catch (createError) {
             console.error("createMany error:", createError);
             throw new Error(
@@ -306,14 +317,19 @@ export async function POST(request) {
 
         let existingFmeSet = new Set();
         if (fmesToCheck.length) {
-          const existing = await tx.enrichedData.findMany({
-            where: {
-              clientId,
-              fme: { in: fmesToCheck }
-            },
-            select: { fme: true }
-          });
-          existingFmeSet = new Set(existing.map((e) => e.fme));
+          // Batch the deduplication query to avoid large IN clauses (PostgreSQL limit ~1000)
+          const DEDUPE_BATCH_SIZE = 1000;
+          for (let i = 0; i < fmesToCheck.length; i += DEDUPE_BATCH_SIZE) {
+            const batch = fmesToCheck.slice(i, i + DEDUPE_BATCH_SIZE);
+            const existing = await tx.enrichedData.findMany({
+              where: {
+                clientId,
+                fme: { in: batch }
+              },
+              select: { fme: true }
+            });
+            existing.forEach((e) => existingFmeSet.add(e.fme));
+          }
         }
 
         const finalPayload = uniquePayload.filter((row) => {
@@ -340,14 +356,22 @@ export async function POST(request) {
             uploadId: upload.id
           }));
 
-          await tx.enrichedData.createMany({
-            data: dataWithUpload,
-            skipDuplicates: false
-          });
+          // Batch inserts for large datasets (Prisma has a limit of ~1000 rows per createMany)
+          const BATCH_SIZE = 1000;
+          for (let i = 0; i < dataWithUpload.length; i += BATCH_SIZE) {
+            const batch = dataWithUpload.slice(i, i + BATCH_SIZE);
+            await tx.enrichedData.createMany({
+              data: batch,
+              skipDuplicates: false
+            });
+          }
         }
 
         return upload;
       }
+    },
+    {
+      timeout: 30000 // 30 seconds for large CSV uploads
     });
 
     return new Response(

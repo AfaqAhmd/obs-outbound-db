@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatDateTimeGMT5 } from "@/lib/formatDate";
 
 export default function ClientsTable({ clients }) {
   if (!clients.length) {
@@ -33,7 +34,7 @@ export default function ClientsTable({ clients }) {
             >
               <td className="px-4 py-2 text-slate-100">{client.name}</td>
               <td className="px-4 py-2 text-slate-400">
-                {new Date(client.createdAt).toLocaleString()}
+                {formatDateTimeGMT5(client.createdAt)}
               </td>
               <td className="px-4 py-2 text-right">
                 <Link

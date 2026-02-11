@@ -34,10 +34,12 @@ export async function GET(request) {
     }
   });
 
-  // Analytics by date
+  // Analytics by date (format in GMT+05:00)
   const byDate = {};
   uploads.forEach((upload) => {
-    const dateKey = upload.uploadDate.toISOString().split("T")[0]; // YYYY-MM-DD
+    // Convert UTC date to GMT+05:00 for grouping
+    const gmt5Date = new Date(upload.uploadDate.getTime() + 5 * 60 * 60 * 1000);
+    const dateKey = gmt5Date.toISOString().split("T")[0]; // YYYY-MM-DD in GMT+05:00
     if (!byDate[dateKey]) {
       byDate[dateKey] = {
         date: dateKey,

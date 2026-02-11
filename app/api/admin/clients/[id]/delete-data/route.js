@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { getAdminSession } from "@/lib/auth";
+import { dateStringToGMT5Date } from "@/lib/timezone";
 
 async function checkAuth() {
   const sessionId = await getAdminSession();
@@ -33,14 +34,8 @@ export async function POST(request, { params }) {
     };
 
     if (from || to) {
-      const fromDate = from ? new Date(from) : null;
-      const toDate = to ? new Date(to) : null;
-      if (fromDate) {
-        fromDate.setHours(0, 0, 0, 0);
-      }
-      if (toDate) {
-        toDate.setHours(23, 59, 59, 999);
-      }
+      const fromDate = dateStringToGMT5Date(from, false);
+      const toDate = dateStringToGMT5Date(to, true);
       uploadWhere.uploadDate = {
         ...(fromDate ? { gte: fromDate } : {}),
         ...(toDate ? { lte: toDate } : {})

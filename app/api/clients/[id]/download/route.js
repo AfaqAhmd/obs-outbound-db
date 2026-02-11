@@ -1,9 +1,9 @@
 import prisma from "@/lib/prisma";
+import { dateStringToGMT5Date } from "@/lib/timezone";
 
 function toDate(value) {
   if (!value) return null;
-  const d = new Date(value);
-  return isNaN(d.getTime()) ? null : d;
+  return dateStringToGMT5Date(value, false);
 }
 
 function formatCsvValue(value) {
@@ -19,11 +19,7 @@ export async function GET(request, { params }) {
   const { searchParams } = new URL(request.url);
   const dataType = (searchParams.get("dataType") || "").toLowerCase();
   const from = toDate(searchParams.get("from"));
-  const to = toDate(searchParams.get("to"));
-  // make "to" inclusive for whole day
-  if (to) {
-    to.setHours(23, 59, 59, 999);
-  }
+  const to = dateStringToGMT5Date(searchParams.get("to"), true);
   const uploader = searchParams.get("uploader") || null;
   const niche = searchParams.get("niche") || null;
 

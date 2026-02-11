@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { formatDateTimeGMT5 } from "@/lib/formatDate";
 
 export default function AdminClientsPage() {
   const router = useRouter();
@@ -205,7 +206,7 @@ export default function AdminClientsPage() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Created {new Date(client.createdAt).toLocaleString()}
+                    Created {formatDateTimeGMT5(client.createdAt)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
