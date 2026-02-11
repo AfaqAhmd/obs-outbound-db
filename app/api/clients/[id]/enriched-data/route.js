@@ -21,6 +21,12 @@ export async function GET(request, { params }) {
   if (from || to) {
     const fromDate = from ? new Date(from) : null;
     const toDate = to ? new Date(to) : null;
+    if (fromDate) {
+      fromDate.setHours(0, 0, 0, 0);
+    }
+    if (toDate) {
+      toDate.setHours(23, 59, 59, 999);
+    }
     uploadFilters.uploadDate = {
       ...(fromDate ? { gte: fromDate } : {}),
       ...(toDate ? { lte: toDate } : {})
