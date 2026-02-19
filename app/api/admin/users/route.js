@@ -18,15 +18,27 @@ export async function GET() {
     });
   }
 
-  const users = await prisma.user.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { client: true }
-  });
+  try {
+    const users = await prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { client: true }
+    });
 
-  return new Response(JSON.stringify({ users }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" }
-  });
+    return new Response(JSON.stringify({ users }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  } catch (e) {
+    console.error("Error fetching users:", e);
+    return new Response(
+      JSON.stringify({ 
+        error: "Failed to fetch users", 
+        details: e.message,
+        stack: process.env.NODE_ENV === "development" ? e.stack : undefined
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 }
 
 export async function POST(request) {

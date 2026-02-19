@@ -13,6 +13,18 @@ export async function POST(request) {
       );
     }
 
+    // Check if prisma.user exists (for debugging)
+    if (!prisma.user) {
+      console.error("Prisma Client error: prisma.user is undefined");
+      return new Response(
+        JSON.stringify({ 
+          error: "Database configuration error",
+          details: "User model not available in Prisma Client"
+        }),
+        { status: 500 }
+      );
+    }
+
     const user = await prisma.user.findUnique({
       where: { username }
     });
