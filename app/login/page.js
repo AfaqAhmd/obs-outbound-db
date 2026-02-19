@@ -42,7 +42,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-950">
       <div className="w-full max-w-md">
         <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6">
-          <h1 className="text-2xl font-semibold mb-2">Login</h1>
+          <h1 className="text-2xl font-semibold mb-2">User Login</h1>
           <p className="text-sm text-slate-400 mb-6">
             Sign in to access your clients
           </p>
