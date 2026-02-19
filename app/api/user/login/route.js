@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { setUserSession } from "@/lib/auth";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export async function POST(request) {
   try {

@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { getAdminSession } from "@/lib/auth";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 async function checkAuth() {
   const sessionId = await getAdminSession();
