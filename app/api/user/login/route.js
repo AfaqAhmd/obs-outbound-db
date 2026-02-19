@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
-import { setAdminSession } from "@/lib/auth";
-import bcrypt from "bcryptjs";
+import { setUserSession } from "@/lib/auth";
+import bcrypt from "bcrypt";
 
 export async function POST(request) {
   try {
@@ -13,18 +13,18 @@ export async function POST(request) {
       );
     }
 
-    const admin = await prisma.admin.findUnique({
+    const user = await prisma.user.findUnique({
       where: { username }
     });
 
-    if (!admin) {
+    if (!user) {
       return new Response(
         JSON.stringify({ error: "Invalid credentials" }),
         { status: 401 }
       );
     }
 
-    const isValid = await bcrypt.compare(password, admin.password);
+    const isValid = await bcrypt.compare(password, user.password);
 
     if (!isValid) {
       return new Response(
@@ -33,14 +33,22 @@ export async function POST(request) {
       );
     }
 
-    // Clear user session if exists (only one session type at a time)
-    const { clearUserSession } = await import("@/lib/auth");
-    await clearUserSession();
+    // Clear admin session if exists (only one session type at a time)
+    const { clearAdminSession } = await import("@/lib/auth");
+    await clearAdminSession();
     
-    await setAdminSession(admin.id);
+    await setUserSession(user.id);
 
     return new Response(
-      JSON.stringify({ success: true, admin: { id: admin.id, username: admin.username } }),
+      JSON.stringify({ 
+        success: true, 
+        user: { 
+          id: user.id, 
+          username: user.username,
+          accessAllClients: user.accessAllClients,
+          clientId: user.clientId
+        } 
+      }),
       { status: 200 }
     );
   } catch (e) {

@@ -3,8 +3,34 @@
 import { useEffect, useState } from "react";
 import RowDetailModal from "./RowDetailModal";
 import { formatDateTimeGMT5 } from "@/lib/formatDate";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from "recharts";
 
 const PAGE_SIZE = 20;
+
+const COLORS = [
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#8b5cf6",
+  "#ec4899",
+  "#06b6d4",
+  "#84cc16"
+];
 
 function TabButton({ active, children, onClick }) {
   return (
@@ -39,6 +65,9 @@ export default function ClientDetail({ client }) {
   const [downloadUploader, setDownloadUploader] = useState("");
   const [niches, setNiches] = useState([]);
   const [downloadNiche, setDownloadNiche] = useState("");
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [analytics, setAnalytics] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -117,6 +146,27 @@ export default function ClientDetail({ client }) {
     loadNiches();
   }, [client.id]);
 
+  useEffect(() => {
+    if (showAnalytics) {
+      async function loadAnalytics() {
+        setAnalyticsLoading(true);
+        try {
+          const res = await fetch(`/api/analytics?clientId=${client.id}`);
+          const json = await res.json();
+          setAnalytics(json);
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setAnalyticsLoading(false);
+        }
+      }
+      loadAnalytics();
+    } else {
+      // Clear analytics when hidden to save memory
+      setAnalytics(null);
+    }
+  }, [showAnalytics, client.id]);
+
   function handleSort(column) {
     if (sort === column) {
       setDirection(direction === "asc" ? "desc" : "asc");
@@ -139,7 +189,231 @@ export default function ClientDetail({ client }) {
             Created {formatDateTimeGMT5(client.createdAt)}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setShowAnalytics(!showAnalytics)}
+          className="rounded bg-sky-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-600"
+        >
+          {showAnalytics ? "Hide Analytics" : "Show Analytics"}
+        </button>
       </div>
+
+      {showAnalytics && (
+        <div className="space-y-6 border border-slate-800 rounded-lg bg-slate-950/40 p-6">
+          <h3 className="text-lg font-semibold tracking-tight">Analytics</h3>
+          
+          {analyticsLoading && (
+            <div className="text-center py-12 text-slate-400">Loading analytics...</div>
+          )}
+
+          {!analyticsLoading && analytics && (
+            <>
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+                  <div className="text-xs text-slate-400 mb-1">Total Uploads</div>
+                  <div className="text-2xl font-semibold">
+                    {analytics.totals?.uploads || 0}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+                  <div className="text-xs text-slate-400 mb-1">Raw Data Records</div>
+                  <div className="text-2xl font-semibold">
+                    {analytics.totals?.rowData || 0}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+                  <div className="text-xs text-slate-400 mb-1">Enriched Records</div>
+                  <div className="text-2xl font-semibold">
+                    {analytics.totals?.enrichedData || 0}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+                  <div className="text-xs text-slate-400 mb-1">Total Records</div>
+                  <div className="text-2xl font-semibold">
+                    {analytics.totals?.totalRows || 0}
+                  </div>
+                </div>
+              </div>
+
+              {/* Charts Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Uploads by Date */}
+                <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+                  <h3 className="text-sm font-semibold mb-4">Uploads Over Time</h3>
+                  {analytics.byDate && analytics.byDate.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={analytics.byDate}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis
+                          dataKey="date"
+                          stroke="#94a3b8"
+                          style={{ fontSize: "11px" }}
+                        />
+                        <YAxis stroke="#94a3b8" style={{ fontSize: "11px" }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#1e293b",
+                            border: "1px solid #334155",
+                            borderRadius: "4px"
+                          }}
+                        />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="uploads"
+                          stroke="#3b82f6"
+                          strokeWidth={2}
+                          name="Uploads"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="totalRows"
+                          stroke="#10b981"
+                          strokeWidth={2}
+                          name="Total Rows"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="text-center py-12 text-slate-400 text-sm">
+                      No data available
+                    </div>
+                  )}
+                </div>
+
+                {/* Uploads by Niche */}
+                <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+                  <h3 className="text-sm font-semibold mb-4">Data by Niche</h3>
+                  {analytics.byNiche && analytics.byNiche.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={analytics.byNiche}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis
+                          dataKey="niche"
+                          stroke="#94a3b8"
+                          style={{ fontSize: "11px" }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis stroke="#94a3b8" style={{ fontSize: "11px" }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#1e293b",
+                            border: "1px solid #334155",
+                            borderRadius: "4px"
+                          }}
+                        />
+                        <Legend />
+                        <Bar dataKey="totalRows" fill="#3b82f6" name="Total Rows" />
+                        <Bar dataKey="uploads" fill="#10b981" name="Uploads" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="text-center py-12 text-slate-400 text-sm">
+                      No data available
+                    </div>
+                  )}
+                </div>
+
+                {/* Uploads by Uploader */}
+                <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+                  <h3 className="text-sm font-semibold mb-4">Data by Uploader</h3>
+                  {analytics.byUploader && analytics.byUploader.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={analytics.byUploader}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis
+                          dataKey="uploader"
+                          stroke="#94a3b8"
+                          style={{ fontSize: "11px" }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis stroke="#94a3b8" style={{ fontSize: "11px" }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#1e293b",
+                            border: "1px solid #334155",
+                            borderRadius: "4px"
+                          }}
+                        />
+                        <Legend />
+                        <Bar dataKey="totalRows" fill="#8b5cf6" name="Total Rows" />
+                        <Bar dataKey="uploads" fill="#ec4899" name="Uploads" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="text-center py-12 text-slate-400 text-sm">
+                      No data available
+                    </div>
+                  )}
+                </div>
+
+                {/* Data Type Distribution */}
+                <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+                  <h3 className="text-sm font-semibold mb-4">Data Type Distribution</h3>
+                  {analytics.totals && (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            {
+                              name: "Raw Data",
+                              value: analytics.totals.rowData || 0
+                            },
+                            {
+                              name: "Enriched Data",
+                              value: analytics.totals.enrichedData || 0
+                            }
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) =>
+                            `${name}: ${(percent * 100).toFixed(0)}%`
+                          }
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {[
+                            { name: "Raw Data", value: analytics.totals.rowData || 0 },
+                            {
+                              name: "Enriched Data",
+                              value: analytics.totals.enrichedData || 0
+                            }
+                          ].map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#1e293b",
+                            border: "1px solid #334155",
+                            borderRadius: "4px"
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {!analyticsLoading && !analytics && (
+            <div className="text-center py-12 text-slate-400">
+              No analytics data available for this client.
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="border border-slate-800 rounded-lg bg-slate-950/40 p-3 flex flex-wrap gap-3 items-end text-xs">
         <div className="space-y-1">

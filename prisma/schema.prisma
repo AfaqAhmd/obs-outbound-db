@@ -10,7 +10,7 @@ datasource db {
 model Admin {
   id        String   @id @default(uuid())
   username  String   @unique
-  password  String   // hashed password
+  password  String // hashed password
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("admins")
@@ -21,10 +21,11 @@ model Client {
   name      String   @unique
   createdAt DateTime @default(now()) @map("created_at")
 
-  uploads   Upload[]
-  rowData   RowData[]
-  enriched  EnrichedData[]
-  niches    ClientNiche[]
+  uploads  Upload[]
+  rowData  RowData[]
+  enriched EnrichedData[]
+  niches   ClientNiche[]
+  users    User[]
 
   @@map("clients")
 }
@@ -35,8 +36,8 @@ model ClientNiche {
   nicheId   String   @map("niche_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  niche     Niche    @relation(fields: [nicheId], references: [id], onDelete: Cascade)
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  niche  Niche  @relation(fields: [nicheId], references: [id], onDelete: Cascade)
 
   @@unique([clientId, nicheId])
   @@index([clientId])
@@ -49,8 +50,8 @@ model Niche {
   name      String   @unique
   createdAt DateTime @default(now()) @map("created_at")
 
-  uploads   Upload[]
-  clients   ClientNiche[]
+  uploads Upload[]
+  clients ClientNiche[]
 
   @@map("niches")
 }
@@ -60,7 +61,7 @@ model Uploader {
   name      String   @unique
   createdAt DateTime @default(now()) @map("created_at")
 
-  uploads   Upload[]
+  uploads Upload[]
 
   @@map("uploaders")
 }
@@ -76,24 +77,24 @@ enum UploadStatus {
 }
 
 model Upload {
-  id              String        @id @default(uuid())
-  clientId        String        @map("client_id")
-  nicheId         String        @map("niche_id")
-  uploaderId      String        @map("uploader_id")
-  dataType        DataType      @map("data_type")
-  uploadDate      DateTime      @map("upload_date")
+  id               String       @id @default(uuid())
+  clientId         String       @map("client_id")
+  nicheId          String       @map("niche_id")
+  uploaderId       String       @map("uploader_id")
+  dataType         DataType     @map("data_type")
+  uploadDate       DateTime     @map("upload_date")
   originalFilename String?      @map("original_filename")
-  rowCount        Int?          @map("row_count")
-  status          UploadStatus  @default(success)
-  errorMessage    String?       @map("error_message")
+  rowCount         Int?         @map("row_count")
+  status           UploadStatus @default(success)
+  errorMessage     String?      @map("error_message")
 
-  client          Client        @relation(fields: [clientId], references: [id])
-  niche           Niche         @relation(fields: [nicheId], references: [id])
-  uploader        Uploader      @relation(fields: [uploaderId], references: [id])
-  rowData         RowData[]
-  enrichedData    EnrichedData[]
+  client       Client         @relation(fields: [clientId], references: [id])
+  niche        Niche          @relation(fields: [nicheId], references: [id])
+  uploader     Uploader       @relation(fields: [uploaderId], references: [id])
+  rowData      RowData[]
+  enrichedData EnrichedData[]
 
-  createdAt       DateTime      @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@index([clientId])
   @@index([nicheId])
@@ -103,9 +104,9 @@ model Upload {
 }
 
 model RowData {
-  id                String   @id @default(uuid())
-  clientId          String   @map("client_id")
-  uploadId          String   @map("upload_id")
+  id       String @id @default(uuid())
+  clientId String @map("client_id")
+  uploadId String @map("upload_id")
 
   companyName       String?  @map("company_name")
   website           String?
@@ -122,8 +123,8 @@ model RowData {
   phoneNumber       String?  @map("phone_number")
   createdAt         DateTime @default(now()) @map("created_at")
 
-  client            Client   @relation(fields: [clientId], references: [id])
-  upload            Upload   @relation(fields: [uploadId], references: [id])
+  client Client @relation(fields: [clientId], references: [id])
+  upload Upload @relation(fields: [uploadId], references: [id])
 
   @@index([clientId])
   @@index([uploadId])
@@ -133,9 +134,9 @@ model RowData {
 }
 
 model EnrichedData {
-  id                String   @id @default(uuid())
-  clientId          String   @map("client_id")
-  uploadId          String   @map("upload_id")
+  id       String @id @default(uuid())
+  clientId String @map("client_id")
+  uploadId String @map("upload_id")
 
   businessName      String?  @map("business_name")
   normalizedWebsite String?  @map("normalized_website")
@@ -155,8 +156,8 @@ model EnrichedData {
   sub4              String?
   createdAt         DateTime @default(now()) @map("created_at")
 
-  client            Client   @relation(fields: [clientId], references: [id])
-  upload            Upload   @relation(fields: [uploadId], references: [id])
+  client Client @relation(fields: [clientId], references: [id])
+  upload Upload @relation(fields: [uploadId], references: [id])
 
   @@index([clientId])
   @@index([uploadId])
@@ -165,3 +166,16 @@ model EnrichedData {
   @@map("enriched_data")
 }
 
+model User {
+  id               String   @id @default(uuid())
+  username         String   @unique
+  password         String // hashed password
+  accessAllClients Boolean  @default(false) @map("access_all_clients")
+  clientId         String?  @map("client_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  client Client? @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+  @@map("users")
+}

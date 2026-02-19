@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   LineChart,
   Line,
@@ -29,26 +30,40 @@ const COLORS = [
 ];
 
 export default function AnalyticsPage() {
+  const router = useRouter();
   const [clients, setClients] = useState([]);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    async function loadClients() {
+    async function checkAuth() {
       try {
-        const res = await fetch("/api/clients");
+        const res = await fetch("/api/admin/check");
         const json = await res.json();
-        setClients(json.clients || []);
-        if (json.clients && json.clients.length > 0) {
-          setSelectedClientId(json.clients[0].id);
+
+        if (!json.authenticated) {
+          router.push("/admin/login");
+          return;
+        }
+
+        // Load all clients (admin has access to all)
+        const clientsRes = await fetch("/api/clients");
+        const clientsData = await clientsRes.json();
+        setClients(clientsData.clients || []);
+        if (clientsData.clients && clientsData.clients.length > 0) {
+          setSelectedClientId(clientsData.clients[0].id);
         }
       } catch (e) {
         console.error(e);
+        router.push("/admin/login");
+      } finally {
+        setAuthLoading(false);
       }
     }
-    loadClients();
-  }, []);
+    checkAuth();
+  }, [router]);
 
   useEffect(() => {
     if (!selectedClientId) return;
@@ -67,6 +82,12 @@ export default function AnalyticsPage() {
     }
     loadAnalytics();
   }, [selectedClientId]);
+
+  if (authLoading) {
+    return (
+      <div className="text-center py-12 text-slate-400">Loading...</div>
+    );
+  }
 
   return (
     <div className="space-y-6">

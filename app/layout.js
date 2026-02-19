@@ -38,12 +38,6 @@ export default function RootLayout({ children }) {
                 Upload
               </a>
               <a
-                href="/analytics"
-                className="block rounded px-3 py-2 text-slate-200 hover:bg-slate-800"
-              >
-                Analytics
-              </a>
-              <a
                 href="/admin"
                 className="block rounded px-3 py-2 text-slate-200 hover:bg-slate-800"
               >

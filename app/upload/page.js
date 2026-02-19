@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 export default function UploadPage() {
+  const router = useRouter();
   const [clients, setClients] = useState([]);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [niches, setNiches] = useState([]);
@@ -12,22 +14,74 @@ export default function UploadPage() {
   const [loadingUploaders, setLoadingUploaders] = useState(true);
   const [loadingNiches, setLoadingNiches] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [admin, setAdmin] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    async function loadClients() {
+    async function checkAuthAndLoadClients() {
       try {
+        // Check if admin is authenticated first
+        const adminCheckRes = await fetch("/api/admin/check");
+        const adminCheckData = await adminCheckRes.json();
+
+        if (adminCheckData.authenticated) {
+          setAdmin(adminCheckData.admin);
+          setIsAdmin(true);
+          
+          // Load clients (admins see all clients)
+          const res = await fetch("/api/clients");
+          const data = await res.json();
+          setClients(data.clients || []);
+          setLoadingClients(false);
+          setAuthLoading(false);
+          return;
+        }
+
+        // Check if user is authenticated
+        const checkRes = await fetch("/api/user/check");
+        const checkData = await checkRes.json();
+
+        if (!checkData.authenticated) {
+          router.push("/login");
+          return;
+        }
+
+        setUser(checkData.user);
+        setIsAdmin(false);
+
+        // Load clients (API will filter based on user access)
         const res = await fetch("/api/clients");
         const data = await res.json();
         setClients(data.clients || []);
       } catch (e) {
         console.error(e);
         toast.error("Failed to load clients");
+        router.push("/login");
       } finally {
         setLoadingClients(false);
+        setAuthLoading(false);
       }
     }
-    loadClients();
-  }, []);
+    checkAuthAndLoadClients();
+  }, [router]);
+
+  async function handleLogout() {
+    try {
+      if (isAdmin) {
+        await fetch("/api/admin/logout", { method: "POST" });
+        toast.success("Logged out");
+        router.push("/admin/login");
+      } else {
+        await fetch("/api/user/logout", { method: "POST" });
+        toast.success("Logged out");
+        router.push("/login");
+      }
+    } catch (e) {
+      toast.error("Failed to logout");
+    }
+  }
 
   useEffect(() => {
     async function loadUploaders() {
@@ -116,13 +170,40 @@ export default function UploadPage() {
     }
   }
 
+  if (authLoading) {
+    return (
+      <div className="text-center py-12 text-slate-400">Loading...</div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-xl">
-      <div>
-        <h2 className="text-xl font-semibold tracking-tight">Upload data</h2>
-        <p className="text-sm text-slate-400">
-          Upload row or enriched CSV data per client.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">Upload data</h2>
+          <p className="text-sm text-slate-400">
+            Upload row or enriched CSV data per client.
+            {admin && (
+              <span className="ml-2">
+                Logged in as: {admin.username} (Admin)
+              </span>
+            )}
+            {user && (
+              <span className="ml-2">
+                Logged in as: {user.username}
+                {user.accessAllClients ? " (All clients)" : user.client ? ` (${user.client.name})` : ""}
+              </span>
+            )}
+          </p>
+        </div>
+        {(admin || user) && (
+          <button
+            onClick={handleLogout}
+            className="rounded border border-slate-700 px-3 py-1.5 text-xs hover:bg-slate-800"
+          >
+            Logout
+          </button>
+        )}
       </div>
       <form
         onSubmit={handleSubmit}

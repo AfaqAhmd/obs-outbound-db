@@ -104,6 +104,26 @@ export default function AdminPanel() {
             Manage uploader accounts
           </p>
         </Link>
+
+        <Link
+          href="/admin/users"
+          className="rounded-lg border border-slate-800 bg-slate-900/40 p-6 hover:bg-slate-900/60 transition"
+        >
+          <h3 className="text-lg font-semibold mb-2">Users</h3>
+          <p className="text-sm text-slate-400">
+            Create and manage users and their client access
+          </p>
+        </Link>
+
+        <Link
+          href="/admin/analytics"
+          className="rounded-lg border border-slate-800 bg-slate-900/40 p-6 hover:bg-slate-900/60 transition"
+        >
+          <h3 className="text-lg font-semibold mb-2">Analytics</h3>
+          <p className="text-sm text-slate-400">
+            View data insights by client, date, niche, and uploader
+          </p>
+        </Link>
       </div>
 
       {showPasswordModal && (
