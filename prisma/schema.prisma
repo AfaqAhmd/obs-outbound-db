@@ -138,23 +138,24 @@ model EnrichedData {
   clientId String @map("client_id")
   uploadId String @map("upload_id")
 
-  businessName      String?  @map("business_name")
-  normalizedWebsite String?  @map("normalized_website")
-  companyLinkedin   String?  @map("company_linkedin")
-  fullName          String?  @map("full_name")
-  firstName         String?  @map("first_name")
-  jobTitle          String?  @map("job_title")
-  personLinkedin    String?  @map("person_linkedin")
-  fme               String?
-  e1                String?
-  e2                String?
-  e3                String?
-  e4                String?
-  sub1              String?
-  sub2              String?
-  sub3              String?
-  sub4              String?
-  createdAt         DateTime @default(now()) @map("created_at")
+  businessName          String?  @map("business_name")
+  normalizedWebsite     String?  @map("normalized_website")
+  normalizeBusinessName String?  @map("normalize_business_name") // NEW
+  companyLinkedin       String?  @map("company_linkedin")
+  fullName              String?  @map("full_name")
+  firstName             String?  @map("first_name")
+  jobTitle              String?  @map("job_title")
+  personLinkedin        String?  @map("person_linkedin")
+  fme                   String?
+  e1                    String?
+  e2                    String?
+  e3                    String?
+  e4                    String?
+  sub1                  String?
+  sub2                  String?
+  sub3                  String?
+  sub4                  String?
+  createdAt             DateTime @default(now()) @map("created_at")
 
   client Client @relation(fields: [clientId], references: [id])
   upload Upload @relation(fields: [uploadId], references: [id])
