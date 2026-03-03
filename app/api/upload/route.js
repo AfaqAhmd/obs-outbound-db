@@ -14,6 +14,7 @@ const REQUIRED_ROW_HEADERS = [
 const REQUIRED_ENRICHED_HEADERS = [
   "Business name",
   "Normalized website",
+  "Normalized business name",
   "Company LinkedIn",
   "Full name",
   "First Name",
@@ -48,6 +49,7 @@ function validateHeaders(required, headers) {
   // columns that are allowed to be completely absent
   const optionalColumns = new Set([
     "company linkedin", // enriched
+    "normalized business name", // enriched
     "e4", // enriched
     "sub4", // enriched
     "address", // row
@@ -279,6 +281,7 @@ export async function POST(request) {
             clientId,
             businessName: val("Business name"),
             normalizedWebsite: val("Normalized website"),
+            normalizedBusinessName: val("Normalized business name"),
             companyLinkedin: val("Company LinkedIn"),
             fullName: val("Full name"),
             firstName: val("First Name"),

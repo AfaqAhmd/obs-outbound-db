@@ -96,6 +96,7 @@ export async function GET(request, { params }) {
         : [
             "Business name",
             "Normalized website",
+            "Normalized business name",
             "Company LinkedIn",
             "Full name",
             "First Name",
@@ -193,6 +194,7 @@ export async function GET(request, { params }) {
     headers = [
       "Business name",
       "Normalized website",
+      "Normalized business name",
       "Company LinkedIn",
       "Full name",
       "First Name",
@@ -217,6 +219,7 @@ export async function GET(request, { params }) {
       return [
         r.businessName,
         r.normalizedWebsite,
+        r.normalizedBusinessName,
         r.companyLinkedin,
         r.fullName,
         r.firstName,

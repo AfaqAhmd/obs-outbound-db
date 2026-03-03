@@ -140,7 +140,7 @@ model EnrichedData {
 
   businessName          String?  @map("business_name")
   normalizedWebsite     String?  @map("normalized_website")
-  normalizeBusinessName String?  @map("normalize_business_name") // NEW
+  normalizedBusinessName String?  @map("normalized_business_name") // NEW
   companyLinkedin       String?  @map("company_linkedin")
   fullName              String?  @map("full_name")
   firstName             String?  @map("first_name")
