@@ -86,7 +86,9 @@ export default function UploadPage() {
   useEffect(() => {
     async function loadUploaders() {
       try {
-        const uploadersRes = await fetch("/api/uploaders");
+        const uploadersRes = await fetch("/api/uploaders", {
+          cache: "no-store"
+        });
         const uploadersData = await uploadersRes.json();
         setUploaders(uploadersData.uploaders || []);
       } catch (e) {
