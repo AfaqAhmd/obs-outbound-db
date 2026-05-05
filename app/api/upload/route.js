@@ -374,7 +374,9 @@ export async function POST(request) {
       }
     },
     {
-      timeout: 30000 // 30 seconds for large CSV uploads
+      // Accelerate interactive transactions have a max timeout of 15000ms.
+      // Keep this safely under the limit so uploads don't fail with P6005.
+      timeout: 14000 // 14 seconds for large CSV uploads
     });
 
     return new Response(
